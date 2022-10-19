@@ -14,6 +14,7 @@ categories = ["no-std"]
 requests-section = ["limine-proc"]
 into-uuid = ["uuid"]
 default = []
+nightly = []
 
 [dependencies]
 limine-proc = { optional = true, version = "0.1.0" }

@@ -4,7 +4,7 @@
 //! * [Limine Boot Protocol Specification](https://github.com/limine-bootloader/limine/blob/trunk/PROTOCOL.md)
 
 #![no_std]
-#![feature(const_nonnull_new)]
+#![cfg_attr(feature = "nightly", feature(const_nonnull_new))]
 
 #[cfg(feature = "requests-section")]
 pub use limine_proc::*;
@@ -57,9 +57,7 @@ impl<T: Debug> Debug for NonNullPtr<T> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let value: &T = &*self;
 
-        f.debug_tuple("NonNullPtr")
-            .field(&format_args!("{:#x?}", value))
-            .finish()
+        f.debug_tuple("NonNullPtr").field(&format_args!("{:#x?}", value)).finish()
     }
 }
 
@@ -74,10 +72,7 @@ pub struct LiminePtr<T> {
 }
 
 impl<T> LiminePtr<T> {
-    const DEFAULT: LiminePtr<T> = Self {
-        ptr: None,
-        _phantom: PhantomData,
-    };
+    const DEFAULT: LiminePtr<T> = Self { ptr: None, _phantom: PhantomData };
 
     #[inline]
     pub fn as_ptr(&self) -> Option<*mut T> {
@@ -119,21 +114,17 @@ impl LiminePtr<c_char> {
     }
 }
 
+#[cfg(feature = "nightly")]
 impl LiminePtr<LimineEntryPoint> {
     #[inline]
     pub const fn new(entry_point: fn() -> !) -> Self {
-        Self {
-            ptr: NonNull::new(entry_point as *mut _),
-            _phantom: PhantomData,
-        }
+        Self { ptr: NonNull::new(entry_point as *mut _), _phantom: PhantomData }
     }
 }
 
 impl<T: Debug> Debug for LiminePtr<T> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.debug_tuple("LiminePtr")
-            .field(&format_args!("{:#x?}", self.get()))
-            .finish()
+        f.debug_tuple("LiminePtr").field(&format_args!("{:#x?}", self.get())).finish()
     }
 }
 
@@ -230,12 +221,7 @@ impl From<LimineUuid> for uuid::Uuid {
 impl From<uuid::Uuid> for LimineUuid {
     fn from(uuid: uuid::Uuid) -> Self {
         let (a, b, c, d) = uuid.as_fields();
-        Self {
-            a,
-            b,
-            c,
-            d: d.clone(),
-        }
+        Self { a, b, c, d: d.clone() }
     }
 }
 
@@ -265,7 +251,8 @@ pub struct LimineFile {
     pub mbr_disk_id: u32,
     /// If non-0, this is the UUID of the disk the file was loaded from as reported in its GPT.
     pub gpt_disk_uuid: LimineUuid,
-    /// If non-0, this is the UUID of the partition the file was loaded from as reported in the GPT.
+    /// If non-0, this is the UUID of the partition the file was loaded from as reported in the
+    /// GPT.
     pub gpt_part_uuid: LimineUuid,
     /// If non-0, this is the UUID of the filesystem of the partition the file was loaded from.
     pub part_uuid: LimineUuid,
@@ -347,14 +334,14 @@ pub struct LimineFramebufferResponse {
     pub revision: u64,
     /// How many framebuffers are present.
     pub framebuffer_count: u64,
-    /// Pointer to an array of `framebuffer_count` pointers to struct [`LimineFramebuffer`] structures.
+    /// Pointer to an array of `framebuffer_count` pointers to struct [`LimineFramebuffer`]
+    /// structures.
     pub framebuffers: ArrayPtr<LimineFramebuffer>,
 }
 
 impl LimineFramebufferResponse {
     pub fn framebuffers<'a>(&'a self) -> &'a [NonNullPtr<LimineFramebuffer>] {
-        self.framebuffers
-            .into_slice(self.framebuffer_count as usize)
+        self.framebuffers.into_slice(self.framebuffer_count as usize)
     }
 }
 
@@ -390,7 +377,8 @@ pub struct LimineTerminalResponse {
     /// reentrant, per-terminal. This means multiple terminals may be called simultaneously, and
     /// multiple callbacks may be handled simultaneously. The terminal parameter points to the
     /// [`LimineTerminal`] structure to use to output the string; the string parameter points to
-    /// a string to print; the length paremeter contains the length, in bytes, of the string to print.
+    /// a string to print; the length paremeter contains the length, in bytes, of the string to
+    /// print.
     write_fn: LimineTerminalWrite,
 }
 
